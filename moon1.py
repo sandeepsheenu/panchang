@@ -4,7 +4,7 @@ def calculate_moon_rise_set(observer, date):
     # Set the observer's location
     observer = ephem.Observer()
     observer.lat = '12.97'  # Latitude of a location
-    observer.lon = '77.56'  # Longitude of a location
+    observer.lon = '77.59'  # Longitude of a location
     # Set the date for which you want to calculate the moon rise and set times
     observer.date = date
 
@@ -16,11 +16,49 @@ def calculate_moon_rise_set(observer, date):
 
 # Example usage
 observer = ephem.Observer()
-date = '2024-01-22'  # Replace with the date for which you want to calculate the moon rise and set times
+date = ephem.now()  # Replace with the date for which you want to calculate the moon rise and set times
 moon_rise, moon_set = calculate_moon_rise_set(observer, date)
 
 print(f'Moon Rise: {moon_rise}')
 print(f'Moon Set: {moon_set}')
+
+
+import ephem
+import pytz
+
+def calculate_moon_rise_set(observer, date):
+    # Set the observer's location
+    observer.lat = '12.97'  # Latitude of a location
+    observer.lon = '77.56'  # Longitude of a location
+    # Convert date string to a datetime object
+    observer.date = date
+
+    # Calculate the moon rise and set times in UTC
+    moon_rise_utc = observer.previous_rising(ephem.Moon())
+    moon_set_utc = observer.next_setting(ephem.Moon())
+
+    return moon_rise_utc, moon_set_utc
+
+def convert_to_ist(time_utc):
+    # Convert UTC time to IST using pytz
+    ist_timezone = pytz.timezone('Asia/Kolkata')
+    ist_time = pytz.utc.localize(time_utc.datetime()).astimezone(ist_timezone)
+    return ist_time
+
+# Example usage
+observer = ephem.Observer()
+date = '2024-02-07'  # Replace with the date for which you want to calculate the moon rise and set times
+moon_rise_utc, moon_set_utc = calculate_moon_rise_set(observer, date)
+
+# Convert to IST
+moon_rise_ist = convert_to_ist(moon_rise_utc)
+moon_set_ist = convert_to_ist(moon_set_utc)
+
+print(f'Moon Rise (UTC): {moon_rise_utc}')
+print(f'Moon Set (UTC): {moon_set_utc}')
+
+print(f'Moon Rise (IST): {moon_rise_ist}')
+print(f'Moon Set (IST): {moon_set_ist}')
 
 
 
@@ -130,6 +168,7 @@ def calculate_nakshatra(observer):
     return int(nakshatra)
 
 def get_nakshatra_name(nakshatra_number):
+    print(nakshatra_number,"first minus nak number")
     # Define Nakshatra names
     nakshatra_names = [
         "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira",
@@ -141,7 +180,7 @@ def get_nakshatra_name(nakshatra_number):
     ]
 
     # Return the corresponding Nakshatra name
-    return nakshatra_names[nakshatra_number -1]
+    return nakshatra_names[nakshatra_number-1]
 
 # Example: Print the name of the current Nakshatra for a specific location
 observer = ephem.Observer()
@@ -201,33 +240,39 @@ print(f'Sunset (IST): {sunset_time_ist}')
 
 
 
+
 import ephem
 import pytz
 from datetime import datetime
+from datetime import timedelta
 
 def calculate_tithi(observer):
     # Create a Moon object
     moon = ephem.Moon()
 
     # Set the observer's location
-    observer.date = ephem.now()
+    observer.date = "2024/2/7 07:18:45"
+    observer.date
+    #print(ephem.now(),"time of tithi")
 
     # Compute the Moon's position
     moon.compute(observer)
 
     # Get the date of the last new moon
-    last_new_moon_date = ephem.localtime(ephem.previous_new_moon(observer.date))
+    last_new_moon_date = ephem.previous_new_moon(observer.date)
 
-    # Convert the observer.date to a datetime object
-    observer_datetime = ephem.localtime(observer.date)
+    # Calculate the phase of the moon (days since the last new moon)
+    moon_phase = observer.date - last_new_moon_date
 
-    # Calculate the Moon's age (days since the last new moon)
-    moon_age = (observer_datetime - last_new_moon_date).days
-
-    # Calculate Tithi based on the Moon's age
-    tithi = int(moon_age) % 30 + 1
+    # Convert moon_phase to integer and take modulo 30
+    tithi = int(moon_phase) % 30 + 1
 
     return tithi
+
+# ... (rest of the code remains the same)
+
+
+# ... (rest of the code remains the same)
 
 def get_tithi_name(tithi_number):
     # Define Tithi names
@@ -268,6 +313,56 @@ def get_tithi_for_bangalore():
 
 # Run the example
 get_tithi_for_bangalore()
+import ephem
+import pytz
+from datetime import datetime, timedelta
+
+def calculate_tithi(observer):
+    # Create a Moon object
+    moon = ephem.Moon()
+
+    # Set the observer's location
+    observer.date = ephem.now()
+
+    # Compute the Moon's position
+    moon.compute(observer)
+
+    # Get the date of the next new moon
+    next_new_moon_date = ephem.localtime(ephem.next_new_moon(observer.date))
+
+    # Convert observer.date to a datetime object
+    observer_datetime = ephem.localtime(observer.date)
+
+    # Calculate the phase of the moon (days until the next new moon)
+    moon_phase = (next_new_moon_date - observer_datetime).days % 30
+
+    # Calculate Tithi based on the Moon's phase
+    tithi = int(moon_phase) + 1
+
+    return tithi
+
+def get_tithi_end_time(latitude, longitude):
+    # Create an observer
+    observer = ephem.Observer()
+    observer.lat = str(latitude)
+    observer.lon = str(longitude)
+
+    # Calculate Tithi
+    current_tithi = calculate_tithi(observer)
+
+    # Get the end time of the current Tithi
+    utc_time = datetime.utcnow()
+    ist_timezone = pytz.timezone('Asia/Kolkata')
+    ist_time = pytz.utc.localize(utc_time).astimezone(ist_timezone)
+
+    # Calculate the end time of the current Tithi
+    next_tithi_start_time = ist_time + timedelta(days=30 - current_tithi)
+
+    print(f'Purnima Tithi ends at: {next_tithi_start_time}')
+
+# Example: Print the end time of Purnima Tithi for Bangalore in IST
+get_tithi_end_time(12.9716, 77.5946)
+
 
 
 

@@ -42,3 +42,20 @@ def get_vikram_samvat_for_bangalore():
 
 # Run the example
 get_vikram_samvat_for_bangalore()
+
+
+import calendar
+
+def get_days_in_month(year, month):
+    # Use monthrange() function from calendar to get the number of days in a month
+    days_in_month = calendar.monthrange(year, month)[1]
+    return days_in_month
+
+# Example usage:
+year = 2024
+
+month = 2  # February
+
+days_in_february_2022 = get_days_in_month(year, month)
+print(f"Number of days in {calendar.month_name[month]}, {year}: {days_in_february_2022}")
+
